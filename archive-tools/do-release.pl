@@ -60,21 +60,40 @@ my @versions;
 my @series;
 my @files = glob("$tmpdir/*.txt.asc");
 
+# VERSION, FULL_VERSION and PRE_RELEASE correspond to these macros from
+# opensslv.h in OpenSSL 3.0:
+# OPENSSL_VERSION_STR, OPENSSL_FULL_VERSION_STR, OPENSSL_VERSION_PRE_RELEASE
+my $tag_re_pre_30 = qr/-pre\d+/;
+my $version_re_pre_30 = qr/
+                              (?P<FULL_VERSION>
+                                  (?P<VERSION>
+                                      # We make sure this only applies
+                                      # on pre-3.0 versions.
+                                      (?P<SERIES>[01]\.\d+\.\d+)
+                                      [a-z]*)
+                                  (?P<PRE_RELEASE>${tag_re_pre_30})?)
+                          /x;
+my $tag_re_30 = qr/-(?:alpha|beta)\d+/;
+my $version_re_30 = qr/
+                          (?P<FULL_VERSION>
+                              (?P<VERSION>
+                                  (?P<SERIES>\d+\.\d+)
+                                  \.\d+)
+                              (?P<PRE_RELEASE>${tag_re_30})?)
+                      /x;
+my $version_re = qr/(?|${version_re_pre_30}|${version_re_30})/;
+my $basefile_re = qr/openssl-${version_re}/;
+
 foreach (@files) {
-    if (/^.*\/openssl-(\d+\.\d+\.\d+[a-z]*-pre\d+)\..*$/) {
-        push @versions, $1;
-    } elsif (/^.*\/openssl-(\d+\.\d+\.\d+[a-z]*)\..*$/) {
-        push @versions, $1;
+    if (m|^.*/${basefile_re}\Q.txt.asc\E$|) {
+        my $serie = $+{SERIES};
+        push @versions, $+{FULL_VERSION};
+        push @series, $serie unless grep /^${serie}$/, @series;
     } else {
         die "Unexpected filename $_";
     }
 }
-foreach (@versions) {
-    if (/^(\d+\.\d+\.\d+)[a-z]*(?:-pre\d+)?$/) {
-        my $serie = $1;
-        push @series, $serie unless grep /^$serie/, @series;
-    }
-}
+
 die "No distribution in temp directory!" if ( scalar @versions == 0 );
 print "OpenSSL versions to be released:\n";
 foreach (@versions) {
@@ -128,14 +147,24 @@ print "Starting release for OpenSSL @versions\n";
 
 if ($do_copy) {
     foreach my $serie (@series) {
-        my @glob_patterns = (
-            "openssl-$serie.tar.gz",
-            "openssl-$serie?.tar.gz",
-            "openssl-$serie-pre[0-9].tar.gz",
-            "openssl-$serie?-pre[0-9].tar.gz",
-            "openssl-$serie-pre[0-9][0-9].tar.gz",
-            "openssl-$serie?-pre[0-9][0-9].tar.gz",
-        );
+        my @glob_patterns =
+            $serie =~ m|^[01]\.|
+            ? ( # pre-3.0 patterns
+               "openssl-$serie.tar.gz",
+               "openssl-$serie?.tar.gz",
+               "openssl-$serie-pre[0-9].tar.gz",
+               "openssl-$serie?-pre[0-9].tar.gz",
+               "openssl-$serie-pre[0-9][0-9].tar.gz",
+               "openssl-$serie?-pre[0-9][0-9].tar.gz",
+              )
+            : ( # 3.0 and on;
+               "openssl-$serie.[0-9].tar.gz",
+               "openssl-$serie.[0-9]-alpha[0-9].tar.gz",
+               "openssl-$serie.[0-9]-beta[0-9].tar.gz",
+               "openssl-$serie.[0-9][0-9].tar.gz",
+               "openssl-$serie.[0-9][0-9]-alpha[0-9].tar.gz",
+               "openssl-$serie.[0-9][0-9]-beta[0-9].tar.gz",
+              );
         my $tomove_oldsrc = "$srcdir/old/$serie";
         my @tomove_src =
           map { basename ($_) }
@@ -163,9 +192,9 @@ if ($do_copy) {
             system("mv $ftpdir/$_* $tomove_oldftp/");
             die "Error moving $_* to old ftp directory!" if $?;
         }
+        print
+            "Moved $serie distributions files to source/old and ftp/old directories\n";
     }
-    print
-      "Moved old distributions files to source/old and ftp/old directories\n";
 
     foreach (@distfiles) {
         system("cp $tmpdir/$_ $srcdir/$_");
