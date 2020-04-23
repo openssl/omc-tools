@@ -22,9 +22,10 @@ my $do_mail   = 0;
 my $do_copy   = 0;
 my $do_move   = 0;
 my $mail_only = 0;
+my $do_debug = 0;
 
 foreach (@ARGV) {
-    if (/--tmpdir=(.*)$/) {
+    if (/^--tmpdir=(.*)$/) {
         $tmpdir = $1;
     } elsif (/^--copy$/) {
         $do_copy = 1;
@@ -40,6 +41,8 @@ foreach (@ARGV) {
         $do_mail = 1;
         $do_copy = 1;
         $do_move = 1;
+    } elsif (/^--debug$/) {
+        $do_debug = 1;
     } else {
         print STDERR "Unknown command line argument $_";
         exit 1;
@@ -185,10 +188,12 @@ if ($do_copy) {
           or die "Couldn't mkdir $tomove_oldftp : $!"
           if !-d $tomove_oldftp;
         foreach (@tomove_src) {
+            print "DEBUG: mv $srcdir/$_* $tomove_oldsrc/\n" if $do_debug;
             system("mv $srcdir/$_* $tomove_oldsrc/");
             die "Error moving $_* to old source directory!" if $?;
         }
         foreach (@tomove_ftp) {
+            print "DEBUG: mv $ftpdir/$_* $tomove_oldftp/\n" if $do_debug;
             system("mv $ftpdir/$_* $tomove_oldftp/");
             die "Error moving $_* to old ftp directory!" if $?;
         }
@@ -197,8 +202,10 @@ if ($do_copy) {
     }
 
     foreach (@distfiles) {
+        print "DEBUG: cp $tmpdir/$_ $srcdir/$_\n" if $do_debug;
         system("cp $tmpdir/$_ $srcdir/$_");
         die "Error copying $_ to source directory!" if $?;
+        print "DEBUG: cp $tmpdir/$_ $ftpdir/$_\n" if $do_debug;
         system("cp $tmpdir/$_ $ftpdir/$_");
         die "Error copying $_ to ftp directory!" if $?;
     }
@@ -219,6 +226,7 @@ foreach (@versions) {
 
     if ($do_mail) {
         print "Sending announcement email for OpenSSL $_...\n";
+        print "DEBUG: $annmail\n" if $do_debug;
         system("$annmail");
         die "Error sending announcement email!" if $?;
         print "Don't forget to authorise the openssl-announce email.\n";
@@ -234,6 +242,7 @@ foreach (@versions) {
 
 if ($do_move) {
     foreach (@distfiles) {
+        print "DEBUG: rename( '$tmpdir/$_', '$olddir/$_' )\n" if $do_debug;
         rename( "$tmpdir/$_", "$olddir/$_" ) || die "Can't move $_: $!";
     }
     print "Moved distribution files to old directory\n";
