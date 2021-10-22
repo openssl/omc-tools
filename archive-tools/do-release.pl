@@ -14,7 +14,6 @@ use File::Basename;
 my $homedir = glob("~openssl");
 my $tmpdir  = $ENV{"OPENSSL_TMP_DIR"} // $homedir . "/dist/new";
 my $olddir  = $ENV{"OPENSSL_OLD_DIR"} // $homedir . "/dist/old";
-my $srcdir  = $ENV{"OPENSSL_SRC_DIR"} // "/var/www/openssl/source";
 my $ftpdir  = $ENV{"OPENSSL_FTP_DIR"} // "/srv/ftp/source";
 my $mail    = $ENV{"OPENSSL_MAIL"} // "mutt -s SUBJECT RECIP < BODY";
 
@@ -56,7 +55,6 @@ if ( getpwuid($<) ne "openssl" && !exists $ENV{"OPENSSL_RELEASE_TEST"} ) {
 
 die "Can't find distribution directory $tmpdir"     unless -d $tmpdir;
 die "Can't find old distribution directory $olddir" unless -d $olddir;
-die "Can't find source directory $srcdir"           unless -d $srcdir;
 die "Can't find ftp directory $ftpdir"              unless -d $ftpdir;
 
 my @versions;
@@ -126,10 +124,6 @@ if ($do_copy) {
             print STDERR "File $_ not found in temp directory!\n";
             $bad = 1;
         }
-        if ( -e "$srcdir/$_" ) {
-            print STDERR "File $_ already present in source directory!\n";
-            $bad = 1;
-        }
         if ( -e "$ftpdir/$_" ) {
             print STDERR "File $_ already present in ftp directory!\n";
             $bad = 1;
@@ -168,12 +162,6 @@ if ($do_copy) {
                "openssl-$serie.[0-9][0-9]-alpha[0-9].tar.gz",
                "openssl-$serie.[0-9][0-9]-beta[0-9].tar.gz",
               );
-        my $tomove_oldsrc = "$srcdir/old/$serie";
-        my @tomove_src =
-          map { basename ($_) }
-          grep { -f $_ }
-          map { glob("$srcdir/$_") }
-          @glob_patterns;
         my $tomove_oldftp = "$ftpdir/old/$serie";
         my @tomove_ftp =
           map { basename ($_) }
@@ -187,11 +175,6 @@ if ($do_copy) {
         mkdir $tomove_oldftp
           or die "Couldn't mkdir $tomove_oldftp : $!"
           if !-d $tomove_oldftp;
-        foreach (@tomove_src) {
-            print "DEBUG: mv $srcdir/$_* $tomove_oldsrc/\n" if $do_debug;
-            system("mv $srcdir/$_* $tomove_oldsrc/");
-            die "Error moving $_* to old source directory!" if $?;
-        }
         foreach (@tomove_ftp) {
             print "DEBUG: mv $ftpdir/$_* $tomove_oldftp/\n" if $do_debug;
             system("mv $ftpdir/$_* $tomove_oldftp/");
@@ -202,9 +185,6 @@ if ($do_copy) {
     }
 
     foreach (@distfiles) {
-        print "DEBUG: cp $tmpdir/$_ $srcdir/$_\n" if $do_debug;
-        system("cp $tmpdir/$_ $srcdir/$_");
-        die "Error copying $_ to source directory!" if $?;
         print "DEBUG: cp $tmpdir/$_ $ftpdir/$_\n" if $do_debug;
         system("cp $tmpdir/$_ $ftpdir/$_");
         die "Error copying $_ to ftp directory!" if $?;
