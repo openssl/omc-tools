@@ -41,4 +41,13 @@ sub has_cla {
   return $json->code == 200;
 }
 
+sub list_clas {
+  my $self = shift;
+
+  my $ua = $self->_clahandler;
+  my $json = $ua->get($self->base_url . '/0/CLAs');
+  croak "Server error: ", $json->message if is_server_error($json->code);
+  return $json->code == 200;
+}
+
 1;

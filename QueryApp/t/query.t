@@ -7,7 +7,7 @@ BEGIN { $ENV{DANCER_APPHANDLER} = 'PSGI';}
 
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 20;
 use Plack::Test;
 use Plack::Util;
 use HTTP::Request::Common;
@@ -171,6 +171,14 @@ subtest 'Request of membership in the group "couchpotatoes"' => sub {
   ok( $res->is_success, 'Successful request' );
   note( $res->content );
   isnt( $res->code, 200, 'We have no content' );
+};
+
+subtest 'Request all existing CLAs' => sub {
+  my $res = $test->request( GET '/0/CLAs' );
+  plan tests => 2;
+  ok( $res->is_success, 'Successful request' );
+  note( $res->content );
+  is( $res->code, 200, 'We have content' );
 };
 
 1;

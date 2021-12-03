@@ -155,6 +155,14 @@ get '/HasCLA/:id' => sub {
   }
 };
 
+get '/CLAs' => sub {
+  my $query = OpenSSL::Query->new(omc => config->{omc});
+  my @response = $query->list_clas();
+
+  return [ @response ] if @response;
+  send_error('Not found', HTTP_NO_CONTENT);
+};
+
 # End of version 0 API.  To create a new version, start with `prefix '1';'
 # below.
 

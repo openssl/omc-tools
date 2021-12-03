@@ -11,7 +11,7 @@ use Test::More;
 use OpenSSL::Query::REST;
 use Data::Dumper;
 
-plan tests => 15;
+plan tests => 16;
 
 SKIP: {
   my $query;
@@ -132,6 +132,13 @@ SKIP: {
     plan tests => 1;
     my @res = $query->members_of( 'couchpotatoes' );
     ok( !@res, 'No members in "couchpotatoes"' );
+    note( @res );
+  };
+
+  subtest 'Request all existing CLAs' => sub {
+    plan tests => 1;
+    my @res = $query->list_clas();
+    ok( @res, 'We got CLAs' );
     note( @res );
   };
 
