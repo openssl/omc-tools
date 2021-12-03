@@ -148,4 +148,13 @@ sub has_cla {
 		  @_);
 }
 
+sub list_clas {
+  my $self = shift;
+
+  $self->_perform('cla',
+		  sub { my $obj = shift;
+			return $obj->list_clas(@_) },
+		  @_);
+}
+
 1;

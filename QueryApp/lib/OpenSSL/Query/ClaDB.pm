@@ -11,6 +11,7 @@ use strict;
 
 package OpenSSL::Query::ClaDB;
 use Carp;
+use Clone qw(clone);
 use Moo;
 use OpenSSL::Query qw(-register-cla OpenSSL::Query::ClaDB -priority 0);
 
@@ -55,6 +56,11 @@ sub has_cla {
   my $starid = '*' . $1;
 
   return exists $self->_cladb->{$id} || exists $self->_cladb->{$starid};
+}
+
+sub list_clas {
+  my $self = shift;
+  return map { clone($_) } sort keys %{$self->_cladb};
 }
 
 1;

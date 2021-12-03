@@ -7,7 +7,7 @@ BEGIN { $ENV{DANCER_APPHANDLER} = 'PSGI';}
 
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Data::Dumper;
 use FindBin;
 
@@ -131,6 +131,13 @@ subtest 'Request of membership in the group "couchpotatoes"' => sub {
   plan tests => 1;
   my @res = $query->members_of( 'couchpotatoes' );
   ok( !@res, 'No members in "couchpotatoes"' );
+  note( @res );
+};
+
+subtest 'Request all existing CLAs' => sub {
+  plan tests => 1;
+  my @res = $query->list_clas();
+  ok( @res, 'We got CLAs' );
   note( @res );
 };
 
