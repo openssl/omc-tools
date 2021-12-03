@@ -5,7 +5,7 @@ use inc::Module::Install;
 
 name        'OpenSSL-Query';
 module_name 'OpenSSL::Query';
-version     '1.1';
+version     '1.2';
 abstract    '';
 author      q{Richard Levitte <levitte@openssl.org>};
 license     'apache';
