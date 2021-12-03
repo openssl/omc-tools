@@ -142,6 +142,23 @@ get '/Group/:group/Members' => sub {
   send_error('Not found', HTTP_NO_CONTENT);
 };
 
+get '/Group/:group/CLAs' => sub {
+  my $query = OpenSSL::Query->new(omc => config->{omc}, REST => 0);
+  my $group = uri_decode(param('group'));
+  my @response = ();
+
+  foreach my $member ($query->members_of($group)) {
+    foreach (@{$member}) {
+      next if (ref $_ eq "HASH");
+      next unless $_ =~ m|^\S+\@\S+$|;
+      push @response, $_ if $query->has_cla($_);
+    }
+  }
+
+  return [ @response ] if @response;
+  send_error('Not found', HTTP_NO_CONTENT);
+};
+
 get '/HasCLA/:id' => sub {
   my $query = OpenSSL::Query->new(omc => config->{omc}, REST => 0);
   my $id = uri_decode(param('id'));
