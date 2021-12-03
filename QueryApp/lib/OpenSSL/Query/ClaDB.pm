@@ -41,6 +41,9 @@ sub _build__cladb {
     croak "Duplicate email address: $email"
       if exists $cladb->{$email};
 
+    # Don't include refusals
+    next if $status eq 'R';
+
     $cladb->{$email} = { status => $status, name => $name };
   }
   close $clafh;
