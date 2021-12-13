@@ -6,13 +6,16 @@ Look for <EDIT> comments for pointers on where to customize
 """
 
 import cgi, cgitb
-import json, urllib, os, re, sys, httplib
+import json, urllib, os, re, sys, httplib, hashlib, hmac
 
 cgitb.enable()
 
 env = os.environ
 textplain = "Content-type: text/plain\n\n"
 what = env.get('HTTP_X_GITHUB_EVENT', 'ping')
+signatures = {
+    'sha256': env.get('HTTP_X_HUB_SIGNATURE_256'),
+}
 From = re.compile("^From:.*<(.*)>")
 Trivial = re.compile("^\s*CLA\s*:\s*TRIVIAL", re.IGNORECASE)
 URLpattern = re.compile("https?://([^/]*)/(.*)")
@@ -36,6 +39,11 @@ statusbody = """
     "context": "cla-check"
 }
 """
+
+# A token/secret for authenticating github (incoming)
+secrets_location=env.get('OSSL_SECRETS', '/var/www')
+incoming_token = open(os.path.join(secrets_location,
+                                   'clacheck-github-sig-secret.dat')).read().strip()
 
 def url_split(url):
     m = URLpattern.match(url)
@@ -80,10 +88,23 @@ def have_cla(name):
     return 0
 
 def process():
+    payload = sys.stdin.read()
+
+    digestname = 'sha256'
+    digestmethod = hashlib.sha256
+    incoming_signature = signatures[digestname]
+    if incoming_signature:
+        eval_signature = hmac.new(key=incoming_token, msg=payload,
+                                  digestmod=digestmethod).hexdigest()
+    if not (incoming_signature
+            and incoming_signature == (digestname + '=' + eval_signature)):
+        print "Status: 401\n", textplain, "Unauthorized"
+        return
+
     if what != 'pull_request':
         print textplain, "Request", what
         return
-    data = json.loads(sys.stdin.read())
+    data = json.loads(payload)
     action = data.get('action', None)
     if action is None or action in null_actions:
         print textplain, "No-op action", action
