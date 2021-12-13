@@ -40,10 +40,13 @@ statusbody = """
 }
 """
 
-# A token/secret for authenticating github (incoming)
+# Tokens/secrets: one for authenticating github (incoming) and one for
+# the authentication of this client (outgoing)
 secrets_location=env.get('OSSL_SECRETS', '/var/www')
 incoming_token = open(os.path.join(secrets_location,
                                    'clacheck-github-sig-secret.dat')).read().strip()
+outgoing_token = open(os.path.join(secrets_location,
+                                   'clacheck-webhook-token.dat')).read().strip()
 
 def url_split(url):
     m = URLpattern.match(url)
@@ -51,10 +54,9 @@ def url_split(url):
 
 def update_status(pr, state, description):
     d = { 'state': state, 'description': description }
-    token = open('../ghpass.txt').read().strip() #<EDIT> password file
     headers = {
-            'Authorization': 'token ' + token,
-            'User-Agent': 'richsalz', #<EDIT> some other name
+            'Authorization': 'token ' + outgoing_token,
+            'User-Agent': 'openssl-machine',
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
             }
