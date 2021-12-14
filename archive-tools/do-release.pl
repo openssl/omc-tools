@@ -169,9 +169,6 @@ if ($do_copy) {
           map { glob("$ftpdir/$_") }
           @glob_patterns;
 
-        mkdir $tomove_oldsrc
-          or die "Couldn't mkdir $tomove_oldsrc : $!"
-          if !-d $tomove_oldsrc;
         mkdir $tomove_oldftp
           or die "Couldn't mkdir $tomove_oldftp : $!"
           if !-d $tomove_oldftp;
