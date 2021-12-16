@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 """GitHub web hook.  Take PullRequest messages, and check the authors
 for the CLA.
 
@@ -6,7 +6,7 @@ Look for <EDIT> comments for pointers on where to customize
 """
 
 import cgi, cgitb
-import json, urllib, os, re, sys, httplib, hashlib, hmac
+import json, urllib.request, urllib.parse, urllib.error, os, re, sys, http.client, hashlib, hmac
 
 cgitb.enable()
 
@@ -61,22 +61,22 @@ def update_status(pr, state, description):
             'Accept': 'application/json',
             }
     host,url = url_split(pr['_links']['statuses']['href'])
-    print textplain, "CLA check", state, description
-    conn = httplib.HTTPSConnection(host)
+    print(textplain, "CLA check", state, description)
+    conn = http.client.HTTPSConnection(host)
     conn.request('POST', url, statusbody % d, headers)
     conn.getresponse().read()
     host,url = url_split(pr['issue_url'])
     if state == SUCCESS:
-        url = url + '/labels/' + urllib.quote(CLA_LABEL)
-        print 'Delete', url
+        url = url + '/labels/' + urllib.parse.quote(CLA_LABEL)
+        print('Delete', url)
         conn.request('DELETE', url, None, headers)
     elif state == FAILURE:
         url = url + '/labels'
-        print 'Add need-cla', url
+        print('Add need-cla', url)
         conn.set_debuglevel(99)
         conn.request('POST', url, '[ "{}" ]'.format(CLA_LABEL), headers)
     reply = conn.getresponse().read()
-    print "--\n", reply
+    print("--\n", reply)
 
 def have_cla(name):
     """Is |name| in the cladb?"""
@@ -100,27 +100,27 @@ def process():
                                   digestmod=digestmethod).hexdigest()
     if not (incoming_signature
             and incoming_signature == (digestname + '=' + eval_signature)):
-        print "Status: 401\n", textplain, "Unauthorized"
+        print("Status: 401\n", textplain, "Unauthorized")
         return
 
     if what != 'pull_request':
-        print textplain, "Request", what
+        print(textplain, "Request", what)
         return
     data = json.loads(payload)
     action = data.get('action', None)
     if action is None or action in null_actions:
-        print textplain, "No-op action", action
+        print(textplain, "No-op action", action)
         return
     pr = data.get('pull_request', None)
     if pr is None:
-        print textplain, "PR data missing"
+        print(textplain, "PR data missing")
         return
     patch_url = pr.get('patch_url', None)
     if patch_url is None:
-        print textplain, "patch_url missing"
+        print(textplain, "patch_url missing")
         return
     missing = {}
-    for line in urllib.urlopen(patch_url):
+    for line in urllib.request.urlopen(patch_url):
         m = Trivial.match(line)
         if m:
             update_status(pr, SUCCESS, "Trivial")
@@ -131,6 +131,6 @@ def process():
     if len(missing) == 0:
         update_status(pr, SUCCESS, 'CLA on file')
     else:
-        update_status(pr, FAILURE, "CLA missing: " + str(missing.keys()))
+        update_status(pr, FAILURE, "CLA missing: " + str(list(missing.keys())))
 
 process()
