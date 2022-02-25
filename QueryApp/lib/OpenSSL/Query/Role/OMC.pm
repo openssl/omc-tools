@@ -16,17 +16,21 @@ use Carp;
 use File::Spec::Functions;
 use Moo::Role;
 
-has omc => ( is => 'ro' );
-has bureau => ( is => 'ro' );	# Backward compat, omc takes precedense
+has data => ( is => 'ro' );
+has omc => ( is => 'ro' );	# Backward compat, data takes precedense
+has bureau => ( is => 'ro' );	# Backward compat, data or omc take precedense
 
 sub _find_file {
   my $self = shift;
   my $filename = shift;
   my $envvar = shift;
 
-  my $omc = $ENV{OMC} // $self->omc // $ENV{BUREAU} // $self->bureau;
+  my $data =
+      $ENV{DATA} // $self->data
+      // $ENV{OMC} // $self->omc
+      // $ENV{BUREAU} // $self->bureau;
   my @paths = ( $ENV{$envvar} // (),
-		$omc ? catfile($omc, $filename) : (),
+		$data ? catfile($data, $filename) : (),
 		catfile('.', $filename) );
   foreach (@paths) {
     return $_ if -r $_;
