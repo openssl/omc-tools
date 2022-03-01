@@ -4,7 +4,7 @@ use warnings;
 use inc::Module::Install;
 
 name     'QueryApp';
-version  '2.1';
+version  '3.0';
 abstract 'An OpenSSL query web app';
 author   q{Richard Levitte <levitte@openssl.org>};
 license  'apache';

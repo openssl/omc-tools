@@ -15,7 +15,7 @@ use Clone qw(clone);
 use Moo;
 use OpenSSL::Query qw(-register-cla OpenSSL::Query::ClaDB -priority 0);
 
-with q(OpenSSL::Query::Role::OMC);
+with q(OpenSSL::Query::Role::Data);
 
 has clafile => ( is => 'ro', default => 'cladb.txt' );
 has _cladb => ( is => 'lazy', builder => 1 );
