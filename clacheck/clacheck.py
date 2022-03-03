@@ -96,7 +96,8 @@ def process():
     digestmethod = hashlib.sha256
     incoming_signature = signatures[digestname]
     if incoming_signature:
-        eval_signature = hmac.new(key=incoming_token, msg=payload,
+        eval_signature = hmac.new(key=bytes(incoming_token, 'utf-8'),
+                                  msg=bytes(payload, 'utf-8'),
                                   digestmod=digestmethod).hexdigest()
     if not (incoming_signature
             and incoming_signature == (digestname + '=' + eval_signature)):
