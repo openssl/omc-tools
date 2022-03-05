@@ -123,6 +123,7 @@ def process():
         return
     missing = {}
     for line in urllib.request.urlopen(patch_url):
+        line = str(line, 'utf-8')
         m = Trivial.match(line)
         if m:
             update_status(pr, SUCCESS, "Trivial")
