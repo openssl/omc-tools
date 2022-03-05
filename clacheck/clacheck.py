@@ -21,7 +21,8 @@ Trivial = re.compile("^\s*CLA\s*:\s*TRIVIAL", re.IGNORECASE)
 URLpattern = re.compile("https?://([^/]*)/(.*)")
 SUCCESS = 'success'
 FAILURE = 'failure'
-CLAFILE = "/var/cache/openssl/checkouts/data/cladb.txt" #<EDIT>
+data_location = env.get('DATA', '/var/cache/openssl/checkouts/data');
+CLAFILE = os.path.join(data_location, 'cladb.txt')
 
 CLA_LABEL = 'hold: cla required'
 
