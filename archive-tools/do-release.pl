@@ -15,6 +15,9 @@ my $homedir = glob("~openssl");
 my $tmpdir  = $ENV{"OPENSSL_TMP_DIR"} // $homedir . "/dist/new";
 my $olddir  = $ENV{"OPENSSL_OLD_DIR"} // $homedir . "/dist/old";
 my $mail    = $ENV{"OPENSSL_MAIL"} // "mutt -s SUBJECT RECIP < BODY";
+my %mailenv = (
+    REPLYTO => $ENV{"OPENSSL_MAILFROM"} // 'openssl@openssl.org',
+);
 
 my @public_series = qw( 3.0 1.1.1 );
 my @premium_series = qw( 1.0.2 );
@@ -247,11 +250,18 @@ foreach (sort keys %versions) {
     if ($do_mail) {
         print "Sending announcement email for OpenSSL $_...\n";
         print "DEBUG: $annmail\n" if $do_debug;
+
+        local %ENV = ( %ENV, %mailenv );
         system("$annmail");
+
         die "Error sending announcement email!" if $?;
         print "Don't forget to authorise the openssl-announce email.\n";
         push @{$distinfo{$_}->{files}}, $announce if $do_move;
     } else {
+        local $annmail
+            = join(' ',
+                   ( map { "$_='$mailenv{$_}'" } sort keys %mailenv ),
+                   $annmail);
         print "Announcement email not sent automatically\n";
         print "\nSend announcement mail manually with command:\n\n$annmail\n\n";
         print
