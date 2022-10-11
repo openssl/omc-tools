@@ -137,8 +137,8 @@ exit 1 unless /^y/i;
 
 my %distinfo;
 
-foreach (sort keys %versions) {
-    $distinfo{$_} = { serie => $versions{$_},
+foreach my $v (sort keys %versions) {
+    $distinfo{$v} = { serie => $versions{$_},
                       files => [ "openssl-$_.tar.gz",
                                  "openssl-$_.tar.gz.sha1",
                                  "openssl-$_.tar.gz.sha256",
@@ -149,9 +149,9 @@ $do_copy = 0 if $mail_only;
 
 my $bad = 0;
 if ($do_copy) {
-    foreach my $distinfo (sort keys %distinfo) {
-        my %info = info($distinfo->{serie});
-        foreach (@{$distinfo->{files}}) {
+    foreach my $v (sort keys %distinfo) {
+        my %info = info($distinfo{$v}->{serie});
+        foreach (@{$distinfo{$v}->{files}}) {
             if ( !-f "$tmpdir/$_" ) {
                 print STDERR "File $_ not found in temp directory!\n";
                 $bad = 1;
@@ -180,9 +180,9 @@ print "Starting release for OpenSSL ", join(' ', sort keys %versions), "\n";
 
 if ($do_copy) {
     my @series = ();
-    foreach my $distinfo (sort keys %distinfo) {
-        push @series, $distinfo->{serie}
-            unless grep { $_ eq $distinfo->{serie} } @series;
+    foreach my $v (sort keys %distinfo) {
+        push @series, $distinfo{$v}->{serie}
+            unless grep { $_ eq $distinfo{$v}->{serie} } @series;
     }
 
     foreach my $serie (sort @series) {
@@ -225,20 +225,20 @@ if ($do_copy) {
         }
     }
 
-    foreach my $distinfo (sort keys %distinfo) {
-        my %info = info($distinfo->{serie});
-        foreach (@{$distinfo->{files}}) {
+    foreach my $v (sort keys %distinfo) {
+        my %info = info($distinfo{$v}->{serie});
+        foreach (@{$distinfo{$v}->{files}}) {
             print "DEBUG: cp $tmpdir/$_ $info{ftpdir}/$_\n" if $do_debug;
             system("cp $tmpdir/$_ $info{ftpdir}/$_");
             die "Error copying $_ to ftp directory!" if $?;
         }
-        print "Copied new $distinfo->{serie} distributions files to $info{ftpdir}\n";
+        print "Copied new $distinfo{$v}->{serie} distributions files to $info{ftpdir}\n";
     }
 } else {
     print "Test mode: no files copied\n";
 }
 
-foreach (sort keys %versions) {
+foreach my $v (sort keys %versions) {
     my %info = info($versions{$_});
     my $announce   = "openssl-$_.txt.asc";
     my $annversion = $_;
@@ -258,7 +258,7 @@ foreach (sort keys %versions) {
 
         die "Error sending announcement email!" if $?;
         print "Don't forget to authorise the openssl-announce email.\n";
-        push @{$distinfo{$_}->{files}}, $announce if $do_move;
+        push @{$distinfo{$v}->{files}}, $announce if $do_move;
     } else {
         $annmail = join(' ',
                         ( map { "$_='$mailenv{$_}'" } sort keys %mailenv ),
@@ -272,8 +272,8 @@ foreach (sort keys %versions) {
 }
 
 if ($do_move) {
-    foreach my $distinfo (sort keys %distinfo) {
-        foreach (@{$distinfo->{files}}) {
+    foreach my $v (sort keys %distinfo) {
+        foreach (@{$distinfo{$v}->{files}}) {
             print "DEBUG: rename( '$tmpdir/$_', '$olddir/$_' )\n" if $do_debug;
             rename( "$tmpdir/$_", "$olddir/$_" ) || die "Can't move $_: $!";
         }
