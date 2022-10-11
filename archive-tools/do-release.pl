@@ -138,7 +138,7 @@ exit 1 unless /^y/i;
 my %distinfo;
 
 foreach (sort keys %versions) {
-    %distinfo{$_} = { serie => $versions{$_},
+    $distinfo{$_} = { serie => $versions{$_},
                       files => [ "openssl-$_.tar.gz",
                                  "openssl-$_.tar.gz.sha1",
                                  "openssl-$_.tar.gz.sha256",
