@@ -260,10 +260,9 @@ foreach (sort keys %versions) {
         print "Don't forget to authorise the openssl-announce email.\n";
         push @{$distinfo{$_}->{files}}, $announce if $do_move;
     } else {
-        local $annmail
-            = join(' ',
-                   ( map { "$_='$mailenv{$_}'" } sort keys %mailenv ),
-                   $annmail);
+        $annmail = join(' ',
+                        ( map { "$_='$mailenv{$_}'" } sort keys %mailenv ),
+                        $annmail);
         print "Announcement email not sent automatically\n";
         print "\nSend announcement mail manually with command:\n\n$annmail\n\n";
         print
