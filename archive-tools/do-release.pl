@@ -90,7 +90,6 @@ if ( getpwuid($<) ne "openssl" && !exists $ENV{"OPENSSL_RELEASE_TEST"} ) {
 
 die "Can't find distribution directory $tmpdir"     unless -d $tmpdir;
 die "Can't find old distribution directory $olddir" unless -d $olddir;
-die "Can't find ftp directory $ftpdir"              unless -d $ftpdir;
 
 my %versions;
 my @files = glob("$tmpdir/*.txt.asc");
@@ -157,7 +156,10 @@ if ($do_copy) {
                 print STDERR "File $_ not found in temp directory!\n";
                 $bad = 1;
             }
-            if ( -e "$info{ftpdir}/$_" ) {
+            if ( !-d $info{ftpdir} ) {
+                print STDERR "Can't find ftp directory $info{ftpdir}";
+                $bad = 1;
+            } elsif ( -e "$info{ftpdir}/$_" ) {
                 print STDERR "File $_ already present in ftp directory!\n";
                 $bad = 1;
             }
