@@ -43,10 +43,10 @@ sub info {
     if ( grep { $serie eq $_ } @public_series ) {
         $info{ftpdir} //= "/srv/ftp/source";
         $info{olddir} = "$info{ftpdir}/old/$serie";
-        $info{annrecip} = "openssl-project openssl-users openssl-announce";
+        $info{annrecip} = [ qw(openssl-project openssl-users openssl-announce) ];
     } elsif ( grep { $serie eq $_ } @premium_series ) {
         $info{ftpdir} //= "/srv/premium";
-        $info{annrecip} = "premium-announce";
+        $info{annrecip} = [ qw(premium-announce) ];
     }
 
     return %info;
