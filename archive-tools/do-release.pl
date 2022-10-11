@@ -138,11 +138,11 @@ exit 1 unless /^y/i;
 my %distinfo;
 
 foreach my $v (sort keys %versions) {
-    $distinfo{$v} = { serie => $versions{$_},
-                      files => [ "openssl-$_.tar.gz",
-                                 "openssl-$_.tar.gz.sha1",
-                                 "openssl-$_.tar.gz.sha256",
-                                 "openssl-$_.tar.gz.asc" ] };
+    $distinfo{$v} = { serie => $versions{$v},
+                      files => [ "openssl-$v.tar.gz",
+                                 "openssl-$v.tar.gz.sha1",
+                                 "openssl-$v.tar.gz.sha256",
+                                 "openssl-$v.tar.gz.asc" ] };
 }
 
 $do_copy = 0 if $mail_only;
@@ -239,9 +239,9 @@ if ($do_copy) {
 }
 
 foreach my $v (sort keys %versions) {
-    my %info = info($versions{$_});
-    my $announce   = "openssl-$_.txt.asc";
-    my $annversion = $_;
+    my %info = info($versions{$v});
+    my $announce   = "openssl-$v.txt.asc";
+    my $annversion = $v;
     $annversion =~ s/-pre(\d+$)/ pre release $1/;
     my $annmail = $mail;
     my $annrecip = join(' ', @{$info{annrecip}});
@@ -250,7 +250,7 @@ foreach my $v (sort keys %versions) {
     $annmail =~ s|BODY|$tmpdir/$announce|;
 
     if ($do_mail) {
-        print "Sending announcement email for OpenSSL $_...\n";
+        print "Sending announcement email for OpenSSL $v...\n";
         print "DEBUG: $annmail\n" if $do_debug;
 
         local %ENV = ( %ENV, %mailenv );
