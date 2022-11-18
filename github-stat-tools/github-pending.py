@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 import sys
 import subprocess
@@ -87,17 +87,15 @@ parser.add_option('-n', '--dry-run', action='store_true', help='be noisy',
 
 (options, args) = parser.parse_args()
 
-if (options.backend):
+if options.backend:
     backend = options.backend
-if (options.host):
+if options.host:
     host = options.host
-if (options.token):
+if options.token:
     fp = open(options.token, 'r')
     git_token = fp.readline().strip('\n')
-if (options.debug):
-    debug = options.debug
-if (options.dryrun):
-    dryrun = options.dryrun
+debug = options.debug
+dryrun = options.dryrun
 
 # info databases
 backends = {
