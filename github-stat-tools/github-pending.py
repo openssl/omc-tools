@@ -6,7 +6,7 @@ import requests
 import json
 import pprint
 from datetime import datetime, timezone
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 dryrun = False
 debug = False
@@ -69,33 +69,33 @@ backend = 'echo'
 git_token = ''
 
 # parse options
-parser = OptionParser()
+parser = ArgumentParser()
 
-parser.add_option('-b', '--backend',
-                  help='the output backend.  Accepted choices: echo, zabbix',
-                  dest='backend')
-parser.add_option('--host',
-                  help='the github host to check',
-                  dest='host')
-parser.add_option('-t', '--token',
-                  help='file containing github authentication token for example "18asdjada..."',
-                  dest='token')
-parser.add_option('-d', '--debug', action='store_true', help='be noisy',
-                  dest='debug')
-parser.add_option('-n', '--dry-run', action='store_true', help='be noisy',
-                  dest='dryrun')
+parser.add_argument('--backend', '-b',
+                    help='the output backend.  Accepted choices: echo, zabbix',
+                    dest='backend')
+parser.add_argument('--host',
+                    help='the github host to check',
+                    dest='host')
+parser.add_argument('--token', '-t',
+                    help='file containing github authentication token for example "18asdjada..."',
+                    dest='token')
+parser.add_argument('--debug', '-d', action='store_true', help='be noisy',
+                    dest='debug')
+parser.add_argument('--dry-run', '-n', action='store_true', help='be noisy',
+                    dest='dryrun')
 
-(options, args) = parser.parse_args()
+args = parser.parse_args()
 
-if options.backend:
-    backend = options.backend
-if options.host:
-    host = options.host
-if options.token:
-    fp = open(options.token, 'r')
+if args.backend:
+    backend = args.backend
+if args.host:
+    host = args.host
+if args.token:
+    fp = open(args.token, 'r')
     git_token = fp.readline().strip('\n')
-debug = options.debug
-dryrun = options.dryrun
+debug = args.debug
+dryrun = args.dryrun
 
 # info databases
 backends = {
