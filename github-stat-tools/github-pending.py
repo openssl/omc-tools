@@ -60,6 +60,13 @@ def backend_echo(host, basekey, values):
     ) + '}'
     print(f'{t}: {s} {values["metric"]}')
 
+### Info databases
+
+backends = {
+    'zabbix': backend_zabbix,
+    'echo': backend_echo,
+}
+
 ### Main
 
 # defaults
@@ -72,8 +79,8 @@ git_token = ''
 parser = ArgumentParser()
 
 parser.add_argument('--backend', '-b',
-                    help='the output backend.  Accepted choices: echo, zabbix',
-                    dest='backend')
+                    help=f'the output backend.  Accepted choices: {", ".join(sorted(list(backends)))}',
+                    dest='backend', choices=list(backends))
 parser.add_argument('--host',
                     help='the github host to check',
                     dest='host')
@@ -97,18 +104,13 @@ if args.token:
 debug = args.debug
 dryrun = args.dryrun
 
-# info databases
-backends = {
-    'zabbix': backend_zabbix,
-    'echo': backend_echo,
-}
-
+# Do stuff
 headers = {
     'Accept': 'application/vnd.github+json',
     'Authorization': git_token,
 }
 
-# Do stuff
+
 open_issues = search(
     host, [ 'repo:openssl/openssl', 'type:issue', 'state:open' ], headers
 )
