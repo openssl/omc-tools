@@ -31,8 +31,8 @@ def search(host, q, headers):
 # the metric, like Prometheus or Loki do.  Instead, we feed all of them as
 # separate values in one input, with the hope that they all get the same
 # time stamp
-def backend_zabbix(host, basekey, values):
-    zabbix_command = ['zabbix_sender', '-z', 'm.openssl.org', '-i', '-']
+def backend_zabbix(host, server, basekey, values):
+    zabbix_command = ['zabbix_sender', '-z', server, '-i', '-']
     zabbix_lines = [f'{host} {basekey}.{k} {v}' for k,v in values.items()]
     zabbix_input = "\n".join(zabbix_lines) + "\n"
     if debug or dryrun:
@@ -52,10 +52,11 @@ def backend_zabbix(host, basekey, values):
 # Echoing is done in a way that's similar to Prometheus / Loki input.
 # The "metric" value is treated specially, so it becomes the actual sole
 # value, while the rest of the values are indexing label values.
-def backend_echo(host, basekey, values):
+def backend_echo(host, server, basekey, values):
     t = now.isoformat()
     s = f'{basekey}' + '{' + ', '.join(
         [ f'host="{host}"',
+          f'server={server}',
           *( f'{k}="{v}"' for k,v in values.items() if k != 'metric' ) ]
     ) + '}'
     print(f'{t}: {s} {values["metric"]}')
@@ -72,6 +73,7 @@ backends = {
 # defaults
 host = 'github.com'
 backend = 'echo'
+server = 'localhost'
 # blank token is fine, but you may hit API rate limiting
 git_token = ''
 
@@ -84,6 +86,9 @@ parser.add_argument('--backend', '-b',
 parser.add_argument('--host',
                     help='the github host to check',
                     dest='host')
+parser.add_argument('--server', '-s',
+                    help='Metrics server (Zabbix) host or IP address',
+                    dest='server')
 parser.add_argument('--token', '-t',
                     help='file containing github authentication token for example "18asdjada..."',
                     dest='token')
@@ -98,6 +103,8 @@ if args.backend:
     backend = args.backend
 if args.host:
     host = args.host
+if args.server:
+    server = args.server
 if args.token:
     fp = open(args.token, 'r')
     git_token = fp.readline().strip('\n')
@@ -118,9 +125,7 @@ open_pulls = search(
     host, [ 'repo:openssl/openssl', 'type:pr', 'state:open' ], headers
 )
 
-backends[backend](host, 'openssl.issues.gap',
-                  { 'repo': 'openssl/openssl',
-                    'metric': open_issues['total_count'] })
-backends[backend](host, 'openssl.prs.gap',
-                  { 'repo': 'openssl/openssl',
-                    'metric': open_pulls['total_count'] })
+backends[backend](host, server, 'openssl.openssl.issues.gap',
+                  { 'metric': open_issues['total_count'] })
+backends[backend](host, server, 'openssl.openssl.prs.gap',
+                  { 'metric': open_pulls['total_count'] })
