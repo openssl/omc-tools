@@ -15,7 +15,7 @@ function print_help() {
     echo "    options:"
     echo "        -c <a command produces a number>"
     echo "        -d ... dry run"
-    echo "                ... executes command but results are printed insted of sent to servers"
+    echo "                ... executes command but results are printed instead of sent to servers"
     echo "        -g <group of metrics title>"
     echo "                ... this is defined as a 'host' in Zabbix server, default value set to 'Performance tests'"
     echo "        -h ... print this help"
