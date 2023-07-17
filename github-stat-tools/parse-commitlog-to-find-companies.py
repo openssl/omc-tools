@@ -37,14 +37,14 @@ commitsccla = 0
 commitscommitters = 0
 commitscommittersccla = 0
 commitsnotfound = 0
-commitsoss = 0
+commitsosscommitters = 0
+commitsossnoncommitters = 0
 committrivial = 0
 
 with open('log.txt', 'r') as file:
     text = file.read()
 
 pattern = r"commit ([\w]+)\nAuthor: (.*?)\n([\s\S]*?)(?=^commit|\Z)"
-#pattern = r"commit ([\w]+)\nAuthor: (.*?)\n((?:(?!commit).)*)"
 matches = re.findall(pattern, text, flags=re.MULTILINE)
 
 for match in matches:
@@ -58,10 +58,13 @@ for match in matches:
     m = re.findall(r'<([^>]+)>',author)
     if (len(m)>0):
         if "openssl.org" in m[0].lower():
-            commitsoss += 1
-            commitscommitters+= 1
+            # Anyone who was paid OpenSSL but not a committer
+            if "daniel" in m[0].lower():
+                commitsossnoncommitters += 1
+            else:
+                commitsosscommitters += 1
+                commitscommitters+= 1
             commitsfound += 1
-#            print ("OSS", fields[1])
         elif not m[0].lower() in cla:
             if cla_trivial:
                 committrivial += 1
@@ -82,11 +85,13 @@ print (f"Found {commitsfound+commitsnotfound} commits")
 print ("Paste below into https://sankeymatic.com/build/\n")
 print (f"Commits by Committers [{commitscommitters}] All Commits")
 print (f"Commits by Non-Committers [{commitsfound-commitscommitters+commitsnotfound}] All Commits")
-print (f"OSS Paid Commits [{commitsoss}] Commits by Committers")
+print (f"OSS Paid Commits [{commitsosscommitters}] Commits by Committers")
+if (commitsossnoncommitters > 0):
+    print (f"OSS Paid Commits [{commitsossnoncommitters}] Commits by Non-Committers")
 print (f"Company Paid Commits [{commitscommittersccla}] Commits by Committers")
-print (f"Individuals Commits [{commitscommitters-commitsoss-commitscommittersccla}] Commits by Committers")
+print (f"Individuals Commits [{commitscommitters-commitsosscommitters-commitscommittersccla}] Commits by Committers")
 print (f"Company Paid Commits [{commitsccla}] Commits by Non-Committers")
-print (f"Individuals Commits [{commitsfound-commitscommitters-commitsccla}] Commits by Non-Committers")
+print (f"Individuals Commits [{commitsfound-commitsossnoncommitters-commitscommitters-commitsccla}] Commits by Non-Committers")
 if (commitsnotfound > 0):
     print (f"Unknown [{commitsnotfound}] Non-Committers")
 print (f"Trivial Commits [{committrivial}] All Commits")
