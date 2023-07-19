@@ -107,15 +107,17 @@ function test_vars() {
         err=1
     fi
     # zabbix server connection
-    which zabbix_sender 2>&1 >/dev/null && {
-        zabbix_sender -z ${ZABBIX_SERVER} -s "this_connection_test_host" -k "connection_test_key" -o 1 | grep -q 'sent: 1;'
-        if [ $? -ne 0 ]; then
-            echo "Error: Zabbix server is not accessible."
-            err=1
-        fi
-    } ||
-    { echo "Error: zabbix_sender must be installed."; err=1; }
-    [ ${err} -ne 0 ] && exit 1
+    if [ ${DRY_RUN} -eq 0 ]; then
+        which zabbix_sender 2>&1 >/dev/null && {
+            zabbix_sender -z ${ZABBIX_SERVER} -s "this_connection_test_host" -k "connection_test_key" -o 1 | grep -q 'sent: 1;'
+            if [ $? -ne 0 ]; then
+                echo "Error: Zabbix server is not accessible."
+                err=1
+            fi
+        } ||
+        { echo "Error: zabbix_sender must be installed."; err=1; }
+        [ ${err} -ne 0 ] && exit 1
+    fi
 }
 
 
