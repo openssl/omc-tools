@@ -158,10 +158,10 @@ echo "*************** Tests ***************"
 # only 1 test -> redefining the array
 [ ${THREADS} -ne 0 ] && ALLOWED_THREADS=(${THREADS})
 for value in ${ALLOWED_THREADS[@]}; do
-    echo "----"
-    echo "Running test '${METRIC_TITLE}'"
     THREADS=${value}
     METRIC_TITLE="perftest.handshakes-per-second-${THREADS}"
+    echo "----"
+    echo "Running test '${METRIC_TITLE}'"
     DATA=()
     for i in $(seq 1 1 ${REPEAT}); do
         CMD2RUN="LD_LIBRARY_PATH=${BUILDS_DIR}/${OSSL_VERSION} ${BUILDS_DIR}/${OSSL_VERSION}-tools/perf/handshake ${BUILDS_DIR}/${OSSL_VERSION}/test/certs ${THREADS} | grep 'Handshakes per second' | awk '{ print \$4; }'"
