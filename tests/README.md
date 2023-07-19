@@ -11,3 +11,5 @@ This area contains bunch extended of tests like performance.
 - perftest/perftest_wrapper.sh .............................. Performance test wrapper for Zabbix, run with -h for more info
 
 - perftest/handshakes_per_second/handshakes_per_second.sh ... Handshakes per second performance test, run with -h for more info
+
+- perftest/pemread/pemread.sh ............................... PEM read private key performance test, run with -h for more info
