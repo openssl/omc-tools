@@ -158,6 +158,7 @@ echo "*************** Tests ***************"
 # only 1 test -> redefining the array
 [ ${THREADS} -ne 0 ] && ALLOWED_THREADS=(${THREADS})
 for value in ${ALLOWED_THREADS[@]}; do
+    [ ${value} -eq 0 ] && continue
     THREADS=${value}
     METRIC_TITLE="perftest.handshakes-per-second-${THREADS}"
     echo "----"
