@@ -4,13 +4,6 @@ PERFTEST_WRAPPER=/opt/openssl/tests/perftest/perftest_wrapper.sh
 BUILDS_DIR=/opt/openssl/tests/build
 # default metrics values
 ALLOWED_OSSL_VERSIONS=("master" "1.1.1" "3.0" "3.1")
-OSSL_GIT_BASE_LINK="https://github.com/openssl"
-OSSL_REPOS=("openssl" "tools")
-declare -A OSSL_GIT_BRANCHES
-OSSL_GIT_BRANCHES[master]="master"
-OSSL_GIT_BRANCHES[1.1.1]="OpenSSL_1_1_1-stable"
-OSSL_GIT_BRANCHES[3.0]="openssl-3.0"
-OSSL_GIT_BRANCHES[3.1]="openssl-3.1"
 OSSL_VERSION=${ALLOWED_OSSL_VERSIONS[0]}
 ALLOWED_THREADS=(0 1 10 100 500 1000)
 ZABBIX_SERVER=127.0.0.1
