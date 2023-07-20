@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # pip3 install pyzabbix
-import sys, argparse, re
+import sys, argparse, re, os
 from pyzabbix import ZabbixAPI, ZabbixAPIException
 # disabling https warnings beacuse the internal IP address is used
 # and the certificate of public IP won't match then and it will raise an error
@@ -9,12 +9,30 @@ import urllib3
 urllib3.disable_warnings()
 from datetime import datetime
 
-#ZUSER = "__CHANGEZUSER__"
-#ZPASSWORD = "__CHANGEZPASSWORD__"
-#ZTOKEN = "__CHANGEZTOKEN__"
-ZSERVER = "127.0.0.1"
-ZURL = f"https://{ZSERVER}"
+DEFAULT_CONFIG_FILE = "tma.conf"
+ZURL = "https://127.0.0.1"
 ZTIMEOUT = 5.0
+ZUSER = ""
+ZPASSWORD = ""
+ZTOKEN = ""
+
+# config file generator
+def mkconfig(config_file=DEFAULT_CONFIG_FILE):
+    config_data = """# Zabbix server URL
+ZURL = https://127.0.0.1
+# Connection timeout [s]
+#ZTIMEOUT = 5.0
+# Zabbix user
+# If the user and password are defined, this authentication is used prior to token.
+ZUSER = CHANGE_ME
+# Zabbix user's password
+ZPASSWORD = CHANGE_ME
+# Zabbix user's token
+#ZTOKEN = CHANGE_ME
+"""
+    print(f"Generating config file: {DEFAULT_CONFIG_FILE}")
+    with open(DEFAULT_CONFIG_FILE, 'w') as f:
+        f.write(config_data)
 
 def main():
     ap = argparse.ArgumentParser(prog="TMA, Test Metrics Automation",
@@ -31,12 +49,36 @@ def main():
                     help="Keep trends for N hours/days, like: 8h, 14d, .... Default value is 365d.")
     ap.add_argument("-u", "--units", dest="hostname_item_units",
                     help="Units, shown in graphs.")
+    ap.add_argument("-c", "--config", dest="config",
+                    help="Configuration file.")
+    ap.add_argument("-m", "--make-config", action="store_true", dest="makeconfig",
+                    help="Generate the configuration file and exit. If -c option is used, its argument is the destination for the new config file.")
     ap.add_argument("-v", "--verbose", action="store_true", dest="verbosity",
                     help="Verbosity.")
     ap.add_argument("-d", "--dry-run", action="store_true", dest="dryrun",
                     help="Dry run. Do all necessary checks including server connection and finish. No item will be created.")
+    # parameters
     args = ap.parse_args()
-   
+    # generate the config file
+    if args.makeconfig:
+        if args.config:
+            globals()["DEFAULT_CONFIG_FILE"] = args.config
+        mkconfig()
+        sys.exit(0)
+    # config file
+    config_file = DEFAULT_CONFIG_FILE
+    if args.config:
+        config_file = args.config
+    if os.path.isfile(config_file):
+        # config file exist
+        with open(config_file) as f:
+            for line in f:
+                # skip comments
+                if re.match("^#.*$", line):
+                    continue
+                k, v = map(str.strip, line.partition("=")[::2])
+                if k in globals():
+                    globals()[k] = v
     # parameters check
     if not args.hostname_name or \
        not args.hostname_item_name or \
@@ -47,14 +89,22 @@ def main():
     zobj = ZabbixAPI(server=ZURL, detect_version=False, timeout=ZTIMEOUT)
     # disabling session verification because of the server certificate bind to a public IP
     zobj.session.verify = False
-    if "ZUSER" in globals() and "ZPASSWORD" in globals():
+    if ZUSER and ZPASSWORD:
         if args.verbosity:
             print("[INFO] Using user and password authentication.")
-        zobj.login(ZUSER, ZPASSWORD)
-    elif "ZTOKEN" in globals():
+        try:
+            zobj.login(ZUSER, ZPASSWORD)
+        except:
+            print("[ERROR] Authentication with login and password failed. Quitting...")
+            sys.exit(1)
+    elif ZTOKEN:
         if args.verbosity:
             print("[INFO] Using token authentication.")
-        zobj.login(api_token=ZTOKEN)
+        try:
+            zobj.login(api_token=ZTOKEN)
+        except:
+            print("[ERROR] Authentication with token failed. Quitting...")
+            sys.exit(1)
     else:
         print("No credentials set. Cannot authenticate against Zabbix server. Quitting...")
         sys.exit(1)
@@ -63,7 +113,7 @@ def main():
         if args.verbosity:
             print("[INFO] Connection established successfuly.")
     except:
-        print("[ERROR] Connection not established.")
+        print("[ERROR] Connection failed. Quitting...")
         sys.exit(1)
     if args.dryrun:
         print("Dry run, finishing here.")
