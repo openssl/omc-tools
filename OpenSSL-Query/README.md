@@ -29,11 +29,15 @@ OpenSSL::Query requires these extra modules to run:
 Any other module OpenSSL::Query depends on should be part of core
 perl.
 
+On Debian, you can use the following command to install the required packages:
+
+    sudo apt install libmodule-install-perl libclass-method-modifiers-perl libmoo-perl liburi-encode-perl
+
 Installation
 ------------
 
     perl Makefile.PL
-    make && make install
+    make && sudo make install
 
 Local installation
 ------------
