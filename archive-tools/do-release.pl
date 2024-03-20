@@ -19,8 +19,8 @@ my %mailenv = (
     REPLYTO => $ENV{"OPENSSL_MAILFROM"} // 'openssl@openssl.org',
 );
 
-my @public_series = qw( 3.2 3.1 3.0 1.1.1 );
-my @premium_series = qw( 1.0.2 );
+my @public_series = qw( 3.3 3.2 3.1 3.0 );
+my @premium_series = qw( 1.1.1 1.0.2 );
 
 #
 # info takes the following arguments:
