@@ -121,17 +121,19 @@ def process():
     if patch_url is None:
         print(textplain, "patch_url missing")
         return
+    alltrivial = True
     missing = {}
     for line in urllib.request.urlopen(patch_url):
         line = str(line, 'utf-8')
         m = Trivial.match(line)
-        if m:
-            update_status(pr, SUCCESS, "Trivial")
-            return
-        m = From.match(line)
-        if m and not have_cla(m.group(1)):
-            missing[m.group(1)] = 1
-    if len(missing) == 0:
+        if not m
+            alltrivial = False
+            m = From.match(line)
+            if m and not have_cla(m.group(1)):
+                missing[m.group(1)] = 1
+    if alltrivial:
+        update_status(pr, SUCCESS, "Trivial")
+    elif len(missing) == 0:
         update_status(pr, SUCCESS, 'CLA on file')
     else:
         update_status(pr, FAILURE, "CLA missing: " + str(list(missing.keys())))
