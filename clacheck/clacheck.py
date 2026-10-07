@@ -79,6 +79,23 @@ def update_status(pr, state, description):
     reply = conn.getresponse().read()
     print("--\n", reply)
 
+def add_comment(pr, comment):
+    headers = {
+        'Authorization': 'token ' + outgoing_token,
+        'User-Agent': 'openssl-machine',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json',
+    }
+    host,url = url_split(pr['issue_url'])
+    payload = json.dumps({
+        "body": comment
+    })
+
+    conn = http.client.HTTPSConnection(host)
+    conn.request('POST', url, payload, headers)
+    reply = conn.getresponse().read()
+    print("--\n", reply)
+
 def have_cla(name):
     """Is |name| in the cladb?"""
     for line in open(CLAFILE):
@@ -135,5 +152,13 @@ def process():
         update_status(pr, SUCCESS, 'CLA on file')
     else:
         update_status(pr, FAILURE, "CLA missing: " + str(list(missing.keys())))
+        add_comment(
+            pr,
+            "The CLA check failed for:\n\n- "
+            + "\n- ".join(missing.keys())
+            + "Non-trivial changes require a CLA. Please see "
+            "https://www.openssl.org/policies/cla.html "
+            "for instructions on completing the CLA."
+        )
 
 process()
