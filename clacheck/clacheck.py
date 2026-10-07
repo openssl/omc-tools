@@ -79,6 +79,10 @@ def update_status(pr, state, description):
     reply = conn.getresponse().read()
     print("--\n", reply)
 
+def has_label(pr, label_name):
+    return any(label["name"] == label_name
+               for label in pr.get("labels", []))
+
 def add_comment(pr, comment):
     headers = {
         'Authorization': 'token ' + outgoing_token,
@@ -151,14 +155,15 @@ def process():
     if len(missing) == 0:
         update_status(pr, SUCCESS, 'CLA on file')
     else:
+        if not has_label(pr, CLA_LABEL):
+            add_comment(
+                pr,
+                "The CLA check failed for:\n\n- "
+                + "\n- ".join(missing.keys())
+                + "Non-trivial changes require a CLA. Please see "
+                "https://www.openssl.org/policies/cla.html "
+                "for instructions on completing the CLA."
+            )
         update_status(pr, FAILURE, "CLA missing: " + str(list(missing.keys())))
-        add_comment(
-            pr,
-            "The CLA check failed for:\n\n- "
-            + "\n- ".join(missing.keys())
-            + "Non-trivial changes require a CLA. Please see "
-            "https://www.openssl.org/policies/cla.html "
-            "for instructions on completing the CLA."
-        )
 
 process()
